@@ -20,7 +20,7 @@ android {
         versionName = "1.0"
 
         val webClientId = (project.findProperty("WEB_CLIENT_ID") as String?) ?: ""
-        buildConfigField("String", "BASE_URL", "\"https://free-backend.vercel.app/api/\"")
+        buildConfigField("String", "BASE_URL", "\"https://free-nrm.vercel.app/api/\"")
         buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
