@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.dresta0056.free.network.AppResult
+import com.dresta0056.free.network.AuthSession
 import com.dresta0056.free.network.AuthRepository
 import com.dresta0056.free.network.Network
 import com.dresta0056.free.network.SessionStore
@@ -25,11 +26,17 @@ class AuthViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    private var restoreStarted = false
+
     init {
         viewModelScope.launch {
             repo.sessionProfile.collect { profile ->
                 _state.value = if (profile != null) {
-                    AuthUiState.SignedIn(profile)
+                    if (AuthSession.idToken != null) {
+                        AuthUiState.SignedIn(profile)
+                    } else {
+                        AuthUiState.Loading
+                    }
                 } else {
                     AuthUiState.SignedOut
                 }
@@ -37,9 +44,21 @@ class AuthViewModel(
         }
     }
 
-    fun trySilentRefresh(ctx: Context) {
+    fun restoreSession(ctx: Context) {
+        if (restoreStarted) return
+        restoreStarted = true
+
         viewModelScope.launch {
-            repo.trySilentSignIn(ctx)
+            when (val result = repo.restoreSession(ctx)) {
+                is AppResult.Success -> {
+                    _state.value = result.data?.let { AuthUiState.SignedIn(it) }
+                        ?: AuthUiState.SignedOut
+                }
+                is AppResult.Error -> {
+                    _errorMessage.value = null
+                    _state.value = AuthUiState.SignedOut
+                }
+            }
         }
     }
 

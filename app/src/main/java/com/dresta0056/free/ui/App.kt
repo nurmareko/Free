@@ -28,11 +28,8 @@ fun App() {
     val signingIn by vm.signingIn.collectAsState()
     val error by vm.errorMessage.collectAsState()
 
-    val signedInState = state as? AuthUiState.SignedIn
-    if (signedInState != null) {
-        LaunchedEffect(signedInState.profile.id) {
-            vm.trySilentRefresh(ctx)
-        }
+    LaunchedEffect(Unit) {
+        vm.restoreSession(ctx)
     }
 
     Surface(

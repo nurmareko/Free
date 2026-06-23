@@ -20,6 +20,7 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import retrofit2.HttpException
 
 class AuthRepository(
@@ -30,6 +31,22 @@ class AuthRepository(
     private val cm = CredentialManager.create(appContext.applicationContext)
 
     val sessionProfile: Flow<UserProfile?> = store.profile
+
+    suspend fun restoreSession(activityContext: Context): AppResult<UserProfile?> {
+        val cachedProfile = store.profile.first() ?: return AppResult.Success(null)
+
+        return when (val result = trySilentSignIn(activityContext)) {
+            is AppResult.Success -> AppResult.Success(cachedProfile)
+            is AppResult.Error -> {
+                AuthSession.idToken = null
+                store.clear()
+                AppResult.Error(
+                    appContext.getString(R.string.error_sign_in_again),
+                    result.cause
+                )
+            }
+        }
+    }
 
     suspend fun signIn(activityContext: Context): AppResult<UserProfile> {
         return try {
