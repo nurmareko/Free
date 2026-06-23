@@ -1,4 +1,4 @@
-package com.dresta0056.free.core
+package com.dresta0056.free.network
 
 import android.util.Log
 import java.io.IOException

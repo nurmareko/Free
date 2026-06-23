@@ -4,68 +4,43 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.dresta0056.free.core.AppResult
-import com.dresta0056.free.data.ItemRepository
-import com.dresta0056.free.data.auth.SessionStore
-import com.dresta0056.free.di.ServiceLocator
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.dresta0056.free.network.toUserMessage
+import com.dresta0056.free.model.toDomain
+import com.dresta0056.free.network.ApiService
+import com.dresta0056.free.network.Network
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class MyPostsViewModel(
-    private val repo: ItemRepository,
-    private val sessionStore: SessionStore
+    private val api: ApiService
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MyPostsUiState())
     val uiState: StateFlow<MyPostsUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            sessionStore.profile
-                .flatMapLatest { profile ->
-                    if (profile == null) {
-                        flowOf(emptyList())
-                    } else {
-                        repo.observeMyItems(profile.id)
-                    }
-                }
-                .collect { items ->
-                    _uiState.update { it.copy(items = items) }
-                }
-        }
-
-        viewModelScope.launch {
-            sessionStore.profile
-                .filterNotNull()
-                .take(1)
-                .collect {
-                    refresh()
-                }
-        }
+        refresh()
     }
 
     fun refresh() {
         if (_uiState.value.isRefreshing) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            when (val result = repo.refreshMyItems()) {
-                is AppResult.Error -> {
-                    _uiState.update {
-                        it.copy(isRefreshing = false, error = result.message)
-                    }
+            try {
+                val items = api.getItems(mine = true).map { it.toDomain() }
+                _uiState.update {
+                    it.copy(items = items, isRefreshing = false)
                 }
-
-                is AppResult.Success -> {
-                    _uiState.update { it.copy(isRefreshing = false) }
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        error = exception.toUserMessage()
+                    )
                 }
             }
         }
@@ -76,15 +51,12 @@ class MyPostsViewModel(
     }
 
     class Factory(
-        appContext: Context
+        @Suppress("UNUSED_PARAMETER") appContext: Context
     ) : ViewModelProvider.Factory {
-        private val repo = ServiceLocator.provideRepository(appContext.applicationContext)
-        private val sessionStore = ServiceLocator.provideSessionStore(appContext.applicationContext)
-
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MyPostsViewModel::class.java)) {
-                return MyPostsViewModel(repo, sessionStore) as T
+                return MyPostsViewModel(Network.api) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

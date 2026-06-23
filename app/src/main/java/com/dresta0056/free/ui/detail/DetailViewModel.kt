@@ -4,37 +4,37 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.dresta0056.free.core.AppResult
-import com.dresta0056.free.data.ItemRepository
-import com.dresta0056.free.data.auth.SessionStore
-import com.dresta0056.free.di.ServiceLocator
+import com.dresta0056.free.network.toUserMessage
+import com.dresta0056.free.network.SessionStore
+import com.dresta0056.free.network.ApiService
+import com.dresta0056.free.network.Network
+import com.dresta0056.free.model.toDomain
+import com.dresta0056.free.model.UserProfile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DetailViewModel(
     private val itemId: String,
-    private val repo: ItemRepository,
+    private val api: ApiService,
     private val sessionStore: SessionStore
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
+    private var currentProfile: UserProfile? = null
 
     init {
         viewModelScope.launch {
-            combine(
-                repo.observeItem(itemId),
-                sessionStore.profile
-            ) { item, profile ->
-                item to (item != null && profile != null && item.ownerId == profile.id)
-            }.collect { (item, canDelete) ->
+            sessionStore.profile.collect { profile ->
+                currentProfile = profile
                 _uiState.update {
                     it.copy(
-                        item = item,
-                        canDelete = canDelete
+                        canDelete = it.item != null &&
+                            profile != null &&
+                            it.item.ownerId == profile.id
                     )
                 }
             }
@@ -56,16 +56,13 @@ class DetailViewModel(
     fun confirmDelete() {
         if (_uiState.value.isDeleting) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isDeleting = true, error = null) }
-            when (val result = repo.deleteItem(itemId)) {
-                is AppResult.Success -> {
-                    _uiState.update { it.copy(deleted = true) }
-                }
-
-                is AppResult.Error -> {
-                    _uiState.update { it.copy(error = result.message) }
-                }
+            try {
+                api.deleteItem(itemId)
+                _uiState.update { it.copy(deleted = true) }
+            } catch (exception: Exception) {
+                _uiState.update { it.copy(error = exception.toUserMessage()) }
             }
             _uiState.update {
                 it.copy(
@@ -81,21 +78,25 @@ class DetailViewModel(
     }
 
     private fun refresh() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            when (val result = repo.refreshItem(itemId)) {
-                is AppResult.Success -> {
-                    _uiState.update { it.copy(isLoading = false) }
+            try {
+                val item = api.getItem(itemId).toDomain()
+                val profile = currentProfile
+                _uiState.update {
+                    it.copy(
+                        item = item,
+                        canDelete = profile != null && item.ownerId == profile.id,
+                        isLoading = false
+                    )
                 }
-
-                is AppResult.Error -> {
+            } catch (exception: Exception) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = result.message
+                            error = exception.toUserMessage()
                         )
                     }
-                }
             }
         }
     }
@@ -104,15 +105,14 @@ class DetailViewModel(
         private val itemId: String,
         appContext: Context
     ) : ViewModelProvider.Factory {
-        private val repo = ServiceLocator.provideRepository(appContext.applicationContext)
-        private val sessionStore = ServiceLocator.provideSessionStore(appContext.applicationContext)
+        private val sessionStore = SessionStore(appContext.applicationContext)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
                 return DetailViewModel(
                     itemId = itemId,
-                    repo = repo,
+                    api = Network.api,
                     sessionStore = sessionStore
                 ) as T
             }

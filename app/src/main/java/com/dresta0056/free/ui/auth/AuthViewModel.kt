@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.dresta0056.free.core.AppResult
-import com.dresta0056.free.data.auth.AuthRepository
-import com.dresta0056.free.di.ServiceLocator
+import com.dresta0056.free.network.AppResult
+import com.dresta0056.free.network.AuthRepository
+import com.dresta0056.free.network.Network
+import com.dresta0056.free.network.SessionStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -68,7 +69,13 @@ class AuthViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-                return AuthViewModel(ServiceLocator.provideAuthRepository(appContext)) as T
+                val sessionStore = SessionStore(appContext.applicationContext)
+                val authRepository = AuthRepository(
+                    appContext = appContext.applicationContext,
+                    api = Network.api,
+                    store = sessionStore
+                )
+                return AuthViewModel(authRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

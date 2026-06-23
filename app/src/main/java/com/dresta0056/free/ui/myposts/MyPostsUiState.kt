@@ -1,6 +1,6 @@
 package com.dresta0056.free.ui.myposts
 
-import com.dresta0056.free.domain.Item
+import com.dresta0056.free.model.Item
 
 data class MyPostsUiState(
     val items: List<Item> = emptyList(),

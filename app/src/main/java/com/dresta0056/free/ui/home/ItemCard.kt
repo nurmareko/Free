@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.dresta0056.free.domain.Item
+import com.dresta0056.free.model.Item
 
 @Composable
 fun ItemCard(

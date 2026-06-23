@@ -7,9 +7,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.dresta0056.free.core.AppResult
-import com.dresta0056.free.data.ItemRepository
-import com.dresta0056.free.di.ServiceLocator
+import com.dresta0056.free.network.toUserMessage
+import com.dresta0056.free.network.ApiService
+import com.dresta0056.free.network.Network
+import com.dresta0056.free.network.toTextPart
 import com.dresta0056.free.util.compressToImagePart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class AddItemViewModel(
     application: Application,
-    private val repo: ItemRepository
+    private val api: ApiService
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(AddItemUiState())
     val uiState: StateFlow<AddItemUiState> = _uiState.asStateFlow()
@@ -86,37 +86,28 @@ class AddItemViewModel(
         val location = current.location.trim()
         val contactInfo = current.contactInfo.trim()
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
             try {
                 val part = try {
-                    withContext(Dispatchers.IO) {
-                        compressToImagePart(getApplication(), imageUri)
-                    }
+                    compressToImagePart(getApplication(), imageUri)
                 } catch (exception: Exception) {
                     Log.e("AddItemViewModel", "Unable to process selected image", exception)
                     _uiState.update { it.copy(error = "Couldn't process the image") }
                     return@launch
                 }
 
-                val result = withContext(Dispatchers.IO) {
-                    repo.addItem(
-                        title = title,
-                        description = description,
-                        location = location,
-                        contactInfo = contactInfo,
-                        image = part
-                    )
-                }
-                when (result) {
-                    is AppResult.Success -> {
-                        _uiState.update { it.copy(done = true) }
-                    }
-
-                    is AppResult.Error -> {
-                        _uiState.update { it.copy(error = result.message) }
-                    }
-                }
+                api.createItem(
+                    title = title.toTextPart(),
+                    description = description.toTextPart(),
+                    location = location.toTextPart(),
+                    contactInfo = contactInfo.toTextPart(),
+                    image = part
+                )
+                _uiState.update { it.copy(done = true) }
+            } catch (exception: Exception) {
+                Log.e("AddItemViewModel", "Unable to add item", exception)
+                _uiState.update { it.copy(error = exception.toUserMessage()) }
             } finally {
                 _uiState.update { it.copy(isSubmitting = false) }
             }
@@ -134,12 +125,10 @@ class AddItemViewModel(
     class Factory(
         private val application: Application
     ) : ViewModelProvider.Factory {
-        private val repo = ServiceLocator.provideRepository(application)
-
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AddItemViewModel::class.java)) {
-                return AddItemViewModel(application, repo) as T
+                return AddItemViewModel(application, Network.api) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

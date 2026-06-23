@@ -25,7 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.dresta0056.free.domain.UserProfile
+import com.dresta0056.free.model.UserProfile
 import com.dresta0056.free.ui.add.AddItemScreen
 import com.dresta0056.free.ui.detail.ItemDetailScreen
 import com.dresta0056.free.ui.edit.EditItemScreen

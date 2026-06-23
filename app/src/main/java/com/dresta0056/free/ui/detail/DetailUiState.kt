@@ -1,6 +1,6 @@
 package com.dresta0056.free.ui.detail
 
-import com.dresta0056.free.domain.Item
+import com.dresta0056.free.model.Item
 
 data class DetailUiState(
     val item: Item? = null,

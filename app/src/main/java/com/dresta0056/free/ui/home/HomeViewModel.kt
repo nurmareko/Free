@@ -4,44 +4,43 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.dresta0056.free.core.AppResult
-import com.dresta0056.free.data.ItemRepository
-import com.dresta0056.free.di.ServiceLocator
+import com.dresta0056.free.network.toUserMessage
+import com.dresta0056.free.model.toDomain
+import com.dresta0056.free.network.ApiService
+import com.dresta0056.free.network.Network
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val repo: ItemRepository
+    private val api: ApiService
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            repo.observeItems().collect { items ->
-                _uiState.update { it.copy(items = items) }
-            }
-        }
         refresh()
     }
 
     fun refresh() {
         if (_uiState.value.isRefreshing) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            when (val result = repo.refreshItems()) {
-                is AppResult.Error -> {
-                    _uiState.update {
-                        it.copy(isRefreshing = false, error = result.message)
-                    }
+            try {
+                val items = api.getItems().map { it.toDomain() }
+                _uiState.update {
+                    it.copy(items = items, isRefreshing = false)
                 }
-
-                is AppResult.Success -> {
-                    _uiState.update { it.copy(isRefreshing = false) }
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        error = exception.toUserMessage()
+                    )
                 }
             }
         }
@@ -52,14 +51,12 @@ class HomeViewModel(
     }
 
     class Factory(
-        appContext: Context
+        @Suppress("UNUSED_PARAMETER") appContext: Context
     ) : ViewModelProvider.Factory {
-        private val repo = ServiceLocator.provideRepository(appContext.applicationContext)
-
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-                return HomeViewModel(repo) as T
+                return HomeViewModel(Network.api) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

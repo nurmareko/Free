@@ -1,4 +1,4 @@
-package com.dresta0056.free.core
+package com.dresta0056.free.network
 
 sealed interface AppResult<out T> {
     data class Success<T>(val data: T) : AppResult<T>
