@@ -8,8 +8,7 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
-import android.util.Log
-import android.webkit.MimeTypeMap
+import android.util.Size
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -22,22 +21,11 @@ import okhttp3.RequestBody.Companion.asRequestBody
 suspend fun compressToImagePart(
     context: Context,
     uri: Uri,
-    maxDim: Int = 1080,
-    quality: Int = 80
+    maxDim: Int = 720,
+    quality: Int = 70
 ): MultipartBody.Part = withContext(Dispatchers.IO) {
-    try {
-        compressToJpegImagePart(context, uri, maxDim, quality)
-    } catch (exception: Exception) {
-        Log.w(
-            ImageCompressorTag,
-            "Unable to decode and compress image; uploading original file instead",
-            exception
-        )
-        copyOriginalToImagePart(context, uri)
-    }
+    compressToJpegImagePart(context, uri, maxDim, quality)
 }
-
-private const val ImageCompressorTag = "ImageCompressor"
 
 private fun compressToJpegImagePart(
     context: Context,
@@ -86,29 +74,6 @@ private fun compressToJpegImagePart(
     return MultipartBody.Part.createFormData("image", file.name, body)
 }
 
-private fun copyOriginalToImagePart(
-    context: Context,
-    uri: Uri
-): MultipartBody.Part {
-    val resolver = context.contentResolver
-    val mediaType = resolver.getType(uri)
-        ?.takeIf { it.startsWith("image/") }
-        ?: "image/jpeg"
-    val extension = MimeTypeMap.getSingleton()
-        .getExtensionFromMimeType(mediaType)
-        ?: "jpg"
-    val file = File(context.cacheDir, "upload_original_${System.currentTimeMillis()}.$extension")
-
-    FileOutputStream(file).use { output ->
-        resolver.openInputStream(uri)?.use { input ->
-            input.copyTo(output)
-        } ?: throw IOException("Unable to open image")
-    }
-
-    val body = file.asRequestBody(mediaType.toMediaType())
-    return MultipartBody.Part.createFormData("image", file.name, body)
-}
-
 private data class DecodedImage(
     val bitmap: Bitmap,
     val needsExifRotation: Boolean
@@ -128,6 +93,14 @@ private fun decodeImage(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         runCatching {
             decodeWithImageDecoder(context, uri, maxDim)
+        }.getOrNull()?.let { bitmap ->
+            return DecodedImage(bitmap = bitmap, needsExifRotation = false)
+        }
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        runCatching {
+            context.contentResolver.loadThumbnail(uri, Size(maxDim, maxDim), null)
         }.getOrNull()?.let { bitmap ->
             return DecodedImage(bitmap = bitmap, needsExifRotation = false)
         }
