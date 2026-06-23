@@ -29,7 +29,7 @@ fun App() {
     val error by vm.errorMessage.collectAsState()
 
     LaunchedEffect(Unit) {
-        vm.restoreSession(ctx)
+        vm.restoreSession()
     }
 
     Surface(

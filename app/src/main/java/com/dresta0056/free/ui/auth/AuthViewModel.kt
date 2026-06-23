@@ -44,12 +44,12 @@ class AuthViewModel(
         }
     }
 
-    fun restoreSession(ctx: Context) {
+    fun restoreSession() {
         if (restoreStarted) return
         restoreStarted = true
 
         viewModelScope.launch {
-            when (val result = repo.restoreSession(ctx)) {
+            when (val result = repo.restoreSession()) {
                 is AppResult.Success -> {
                     _state.value = result.data?.let { AuthUiState.SignedIn(it) }
                         ?: AuthUiState.SignedOut

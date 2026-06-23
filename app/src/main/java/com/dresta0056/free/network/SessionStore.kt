@@ -10,8 +10,27 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore("session")
 
+data class StoredSession(
+    val profile: UserProfile,
+    val idToken: String
+)
+
 class SessionStore(appContext: Context) {
     private val dataStore = appContext.applicationContext.dataStore
+
+    val session: Flow<StoredSession?> = dataStore.data.map { preferences ->
+        val id = preferences[USER_ID] ?: return@map null
+        val idToken = preferences[ID_TOKEN] ?: return@map null
+        StoredSession(
+            profile = UserProfile(
+                id = id,
+                email = preferences[EMAIL].orEmpty(),
+                name = preferences[NAME].orEmpty(),
+                pictureUrl = preferences[PICTURE].orEmpty()
+            ),
+            idToken = idToken
+        )
+    }
 
     val profile: Flow<UserProfile?> = dataStore.data.map { preferences ->
         val id = preferences[USER_ID] ?: return@map null
@@ -23,12 +42,13 @@ class SessionStore(appContext: Context) {
         )
     }
 
-    suspend fun save(profile: UserProfile) {
+    suspend fun save(profile: UserProfile, idToken: String) {
         dataStore.edit { preferences ->
             preferences[USER_ID] = profile.id
             preferences[EMAIL] = profile.email
             preferences[NAME] = profile.name
             preferences[PICTURE] = profile.pictureUrl
+            preferences[ID_TOKEN] = idToken
         }
     }
 
@@ -43,5 +63,6 @@ class SessionStore(appContext: Context) {
         val EMAIL = stringPreferencesKey("email")
         val NAME = stringPreferencesKey("name")
         val PICTURE = stringPreferencesKey("picture")
+        val ID_TOKEN = stringPreferencesKey("id_token")
     }
 }
