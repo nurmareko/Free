@@ -36,9 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.dresta0056.free.R
 import com.dresta0056.free.model.UserProfile
 import com.dresta0056.free.ui.theme.FreeTheme
 
@@ -53,7 +55,7 @@ fun AboutScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("About") },
+                title = { Text(stringResource(R.string.nav_about)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
@@ -76,37 +78,37 @@ fun AboutScreen(
                 onLogout = onLogout
             )
             Text(
-                text = "Free is a frugal giveaway app for people who have unused things but do not want to throw them away.",
+                text = stringResource(R.string.about_description),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
             ConductSection(
-                title = "Do",
+                title = stringResource(R.string.about_do_title),
                 items = listOf(
-                    "Post items that are still usable.",
-                    "Give clear descriptions.",
-                    "Add honest item conditions.",
-                    "Use respectful contact information.",
-                    "Delete items that are no longer available."
+                    stringResource(R.string.about_do_usable),
+                    stringResource(R.string.about_do_descriptions),
+                    stringResource(R.string.about_do_conditions),
+                    stringResource(R.string.about_do_contact),
+                    stringResource(R.string.about_do_delete_unavailable)
                 ),
                 isPositive = true
             )
 
             ConductSection(
-                title = "Don't",
+                title = stringResource(R.string.about_dont_title),
                 items = listOf(
-                    "Sell items.",
-                    "Ask for payment.",
-                    "Post dangerous or illegal items.",
-                    "Spam the feed.",
-                    "Post fake listings.",
-                    "Harass other users."
+                    stringResource(R.string.about_dont_sell),
+                    stringResource(R.string.about_dont_payment),
+                    stringResource(R.string.about_dont_dangerous),
+                    stringResource(R.string.about_dont_spam),
+                    stringResource(R.string.about_dont_fake),
+                    stringResource(R.string.about_dont_harass)
                 ),
                 isPositive = false
             )
             Text(
-                text = "Use what already exists before buying more.",
+                text = stringResource(R.string.about_closing),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -185,7 +187,7 @@ private fun ProfileCard(
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
         ) {
-            Text("Log out")
+            Text(stringResource(R.string.action_log_out))
         }
     }
 }

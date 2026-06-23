@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MyPostsViewModel(
+    private val appContext: Context,
     private val api: ApiService
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MyPostsUiState())
@@ -39,7 +40,7 @@ class MyPostsViewModel(
                 _uiState.update {
                     it.copy(
                         isRefreshing = false,
-                        error = exception.toUserMessage()
+                        error = exception.toUserMessage(appContext)
                     )
                 }
             }
@@ -51,12 +52,14 @@ class MyPostsViewModel(
     }
 
     class Factory(
-        @Suppress("UNUSED_PARAMETER") appContext: Context
+        appContext: Context
     ) : ViewModelProvider.Factory {
+        private val applicationContext = appContext.applicationContext
+
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MyPostsViewModel::class.java)) {
-                return MyPostsViewModel(Network.api) as T
+                return MyPostsViewModel(applicationContext, Network.api) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

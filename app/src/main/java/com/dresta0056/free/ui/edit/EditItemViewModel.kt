@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.dresta0056.free.R
 import com.dresta0056.free.network.toUserMessage
 import com.dresta0056.free.network.ApiService
 import com.dresta0056.free.network.Network
@@ -44,7 +45,7 @@ class EditItemViewModel(
                 _uiState.update {
                     it.copy(
                         loaded = true,
-                        error = exception.toUserMessage()
+                        error = exception.toUserMessage(appContext)
                     )
                 }
             }
@@ -117,7 +118,9 @@ class EditItemViewModel(
                         compressToImagePart(appContext, newImageUri)
                     } catch (exception: Exception) {
                         Log.e("EditItemViewModel", "Unable to process selected image", exception)
-                        _uiState.update { it.copy(error = "Couldn't process the image") }
+                        _uiState.update {
+                            it.copy(error = appContext.getString(R.string.error_process_image))
+                        }
                         return@launch
                     }
                 } else {
@@ -135,7 +138,7 @@ class EditItemViewModel(
                 _uiState.update { it.copy(done = true) }
             } catch (exception: Exception) {
                 Log.e("EditItemViewModel", "Unable to update item", exception)
-                _uiState.update { it.copy(error = exception.toUserMessage()) }
+                _uiState.update { it.copy(error = exception.toUserMessage(appContext)) }
             } finally {
                 _uiState.update { it.copy(isSubmitting = false) }
             }

@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dresta0056.free.R
@@ -64,7 +65,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Free",
+                        text = stringResource(R.string.brand_name),
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -77,7 +78,7 @@ fun HomeScreen(
                     IconButton(onClick = onRefresh) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
-                            contentDescription = "Refresh"
+                            contentDescription = stringResource(R.string.action_refresh)
                         )
                     }
                 }
@@ -93,7 +94,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Add"
+                    contentDescription = stringResource(R.string.action_add)
                 )
             }
         },
@@ -170,12 +171,12 @@ private fun EmptyHomeState(
                 .height(170.dp)
         )
         Text(
-            text = "Nothing free here yet.",
+            text = stringResource(R.string.home_empty_title),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Be the first to let something go.",
+            text = stringResource(R.string.home_empty_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center

@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.dresta0056.free.R
 import com.dresta0056.free.network.toUserMessage
 import com.dresta0056.free.network.ApiService
 import com.dresta0056.free.network.Network
@@ -93,7 +94,9 @@ class AddItemViewModel(
                     compressToImagePart(getApplication(), imageUri)
                 } catch (exception: Exception) {
                     Log.e("AddItemViewModel", "Unable to process selected image", exception)
-                    _uiState.update { it.copy(error = "Couldn't process the image") }
+                    _uiState.update {
+                        it.copy(error = getApplication<Application>().getString(R.string.error_process_image))
+                    }
                     return@launch
                 }
 
@@ -107,7 +110,9 @@ class AddItemViewModel(
                 _uiState.update { it.copy(done = true) }
             } catch (exception: Exception) {
                 Log.e("AddItemViewModel", "Unable to add item", exception)
-                _uiState.update { it.copy(error = exception.toUserMessage()) }
+                _uiState.update {
+                    it.copy(error = exception.toUserMessage(getApplication<Application>()))
+                }
             } finally {
                 _uiState.update { it.copy(isSubmitting = false) }
             }

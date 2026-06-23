@@ -9,6 +9,7 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
 import com.dresta0056.free.BuildConfig
+import com.dresta0056.free.R
 import com.dresta0056.free.network.AppResult
 import com.dresta0056.free.network.toUserMessage
 import com.dresta0056.free.network.ApiService
@@ -22,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 
 class AuthRepository(
-    appContext: Context,
+    private val appContext: Context,
     private val api: ApiService,
     private val store: SessionStore
 ) {
@@ -52,11 +53,23 @@ class AuthRepository(
         } catch (throwable: Throwable) {
             AuthSession.idToken = null
             when (throwable) {
-                is GetCredentialCancellationException -> AppResult.Error("Sign-in cancelled", throwable)
-                is NoCredentialException -> AppResult.Error("No Google account available", throwable)
-                is UnexpectedCredentialException -> AppResult.Error("Unexpected credential type", throwable)
-                is HttpException, is IOException -> AppResult.Error(throwable.toUserMessage(), throwable)
-                else -> AppResult.Error(throwable.toUserMessage(), throwable)
+                is GetCredentialCancellationException -> AppResult.Error(
+                    appContext.getString(R.string.error_sign_in_cancelled),
+                    throwable
+                )
+                is NoCredentialException -> AppResult.Error(
+                    appContext.getString(R.string.error_no_google_account),
+                    throwable
+                )
+                is UnexpectedCredentialException -> AppResult.Error(
+                    appContext.getString(R.string.error_unexpected_credential),
+                    throwable
+                )
+                is HttpException, is IOException -> AppResult.Error(
+                    throwable.toUserMessage(appContext),
+                    throwable
+                )
+                else -> AppResult.Error(throwable.toUserMessage(appContext), throwable)
             }
         }
     }
@@ -77,9 +90,15 @@ class AuthRepository(
             AppResult.Success(Unit)
         } catch (throwable: Throwable) {
             when (throwable) {
-                is NoCredentialException -> AppResult.Error("No Google account available", throwable)
-                is UnexpectedCredentialException -> AppResult.Error("Unexpected credential type", throwable)
-                else -> AppResult.Error(throwable.toUserMessage(), throwable)
+                is NoCredentialException -> AppResult.Error(
+                    appContext.getString(R.string.error_no_google_account),
+                    throwable
+                )
+                is UnexpectedCredentialException -> AppResult.Error(
+                    appContext.getString(R.string.error_unexpected_credential),
+                    throwable
+                )
+                else -> AppResult.Error(throwable.toUserMessage(appContext), throwable)
             }
         }
     }

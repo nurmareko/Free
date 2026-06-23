@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -64,12 +65,12 @@ fun MyPostsScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("My Posts") },
+                title = { Text(stringResource(R.string.nav_my_posts)) },
                 actions = {
                     IconButton(onClick = vm::refresh) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
-                            contentDescription = "Refresh"
+                            contentDescription = stringResource(R.string.action_refresh)
                         )
                     }
                 },
@@ -153,12 +154,12 @@ private fun EmptyMyPostsState(
                 .height(170.dp)
         )
         Text(
-            text = "You have not posted anything yet.",
+            text = stringResource(R.string.my_posts_empty_title),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Let go of something you no longer use.",
+            text = stringResource(R.string.my_posts_empty_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center

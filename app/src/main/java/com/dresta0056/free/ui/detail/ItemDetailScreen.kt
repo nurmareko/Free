@@ -48,11 +48,13 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.dresta0056.free.R
 import com.dresta0056.free.model.Item
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,7 +96,7 @@ fun ItemDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 },
@@ -106,7 +108,7 @@ fun ItemDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Edit,
-                                contentDescription = "Edit"
+                                contentDescription = stringResource(R.string.action_edit)
                             )
                         }
                         IconButton(
@@ -115,7 +117,7 @@ fun ItemDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Delete,
-                                contentDescription = "Delete"
+                                contentDescription = stringResource(R.string.action_delete)
                             )
                         }
                     }
@@ -202,22 +204,22 @@ private fun DetailContent(
             )
             DetailSection(
                 icon = Icons.Filled.LocationOn,
-                label = "Location",
+                label = stringResource(R.string.field_location),
                 value = item.location
             )
             DetailSection(
                 icon = Icons.Filled.Description,
-                label = "Description",
+                label = stringResource(R.string.field_description),
                 value = item.description
             )
             DetailSection(
                 icon = Icons.Filled.Person,
-                label = "Posted by",
+                label = stringResource(R.string.detail_posted_by),
                 value = item.ownerName
             )
             DetailSection(
                 icon = Icons.Filled.Phone,
-                label = "Contact",
+                label = stringResource(R.string.detail_contact),
                 value = item.contactInfo
             )
             OutlinedButton(
@@ -236,7 +238,7 @@ private fun DetailContent(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text("Copy Contact")
+                Text(stringResource(R.string.action_copy_contact))
             }
         }
     }
@@ -288,10 +290,10 @@ private fun DeleteConfirmDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Delete this item?")
+            Text(stringResource(R.string.delete_item_title))
         },
         text = {
-            Text("This will remove it from Free permanently.")
+            Text(stringResource(R.string.delete_item_message))
         },
         confirmButton = {
             TextButton(
@@ -305,7 +307,7 @@ private fun DeleteConfirmDialog(
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                 }
-                Text("Delete")
+                Text(stringResource(R.string.action_delete))
             }
         },
         dismissButton = {
@@ -313,7 +315,7 @@ private fun DeleteConfirmDialog(
                 onClick = onDismiss,
                 enabled = !isDeleting
             ) {
-                Text("Cancel")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     )

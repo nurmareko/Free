@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -61,6 +62,7 @@ fun HomeNavHost(
                 tonalElevation = NavigationBarDefaults.Elevation
             ) {
                 bottomDestinations.forEach { dest ->
+                    val label = stringResource(dest.labelRes)
                     NavigationBarItem(
                         selected = currentDestination?.hierarchy?.any {
                             it.route == dest.route
@@ -77,10 +79,10 @@ fun HomeNavHost(
                         icon = {
                             Icon(
                                 imageVector = dest.icon,
-                                contentDescription = dest.label
+                                contentDescription = label
                             )
                         },
-                        label = { Text(dest.label) },
+                        label = { Text(label) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             selectedTextColor = MaterialTheme.colorScheme.primary,

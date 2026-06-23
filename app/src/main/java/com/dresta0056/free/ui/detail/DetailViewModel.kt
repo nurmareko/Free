@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 
 class DetailViewModel(
     private val itemId: String,
+    private val appContext: Context,
     private val api: ApiService,
     private val sessionStore: SessionStore
 ) : ViewModel() {
@@ -62,7 +63,7 @@ class DetailViewModel(
                 api.deleteItem(itemId)
                 _uiState.update { it.copy(deleted = true) }
             } catch (exception: Exception) {
-                _uiState.update { it.copy(error = exception.toUserMessage()) }
+                _uiState.update { it.copy(error = exception.toUserMessage(appContext)) }
             }
             _uiState.update {
                 it.copy(
@@ -94,7 +95,7 @@ class DetailViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = exception.toUserMessage()
+                            error = exception.toUserMessage(appContext)
                         )
                     }
             }
@@ -105,13 +106,15 @@ class DetailViewModel(
         private val itemId: String,
         appContext: Context
     ) : ViewModelProvider.Factory {
-        private val sessionStore = SessionStore(appContext.applicationContext)
+        private val applicationContext = appContext.applicationContext
+        private val sessionStore = SessionStore(applicationContext)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
                 return DetailViewModel(
                     itemId = itemId,
+                    appContext = applicationContext,
                     api = Network.api,
                     sessionStore = sessionStore
                 ) as T

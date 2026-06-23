@@ -52,10 +52,12 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.dresta0056.free.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,12 +100,12 @@ fun EditItemScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Edit Item") },
+                title = { Text(stringResource(R.string.edit_item_title)) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "Close"
+                            contentDescription = stringResource(R.string.action_close)
                         )
                     }
                 },
@@ -149,31 +151,35 @@ fun EditItemScreen(
                 RequiredTextField(
                     value = state.title,
                     onValueChange = vm::onTitleChange,
-                    label = "Item Name",
+                    label = stringResource(R.string.field_item_name),
+                    placeholderText = stringResource(R.string.placeholder_item_name),
                     isError = state.titleError,
-                    errorText = "Item Name is required"
+                    errorText = stringResource(R.string.error_item_name_required)
                 )
                 RequiredTextField(
                     value = state.description,
                     onValueChange = vm::onDescriptionChange,
-                    label = "Description",
+                    label = stringResource(R.string.field_description),
+                    placeholderText = stringResource(R.string.placeholder_description),
                     isError = state.descriptionError,
-                    errorText = "Description is required",
+                    errorText = stringResource(R.string.error_description_required),
                     minLines = 4
                 )
                 RequiredTextField(
                     value = state.location,
                     onValueChange = vm::onLocationChange,
-                    label = "Location",
+                    label = stringResource(R.string.field_location),
+                    placeholderText = stringResource(R.string.placeholder_location),
                     isError = state.locationError,
-                    errorText = "Location is required"
+                    errorText = stringResource(R.string.error_location_required)
                 )
                 RequiredTextField(
                     value = state.contactInfo,
                     onValueChange = vm::onContactChange,
-                    label = "Contact Information",
+                    label = stringResource(R.string.field_contact_information),
+                    placeholderText = stringResource(R.string.placeholder_contact_information),
                     isError = state.contactError,
-                    errorText = "Contact Information is required"
+                    errorText = stringResource(R.string.error_contact_information_required)
                 )
 
                 Button(
@@ -195,7 +201,7 @@ fun EditItemScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else {
-                        Text("Save changes")
+                        Text(stringResource(R.string.action_save_changes))
                     }
                 }
             }
@@ -253,12 +259,12 @@ private fun ImagePickerBox(
                             .padding(14.dp)
                     )
                     Text(
-                        text = "Add photos",
+                        text = stringResource(R.string.image_add_photos),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Tap to change photo",
+                        text = stringResource(R.string.image_tap_change),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -276,7 +282,7 @@ private fun ImagePreview(
     Box(modifier = modifier.fillMaxSize()) {
         AsyncImage(
             model = imageModel,
-            contentDescription = "Item photo",
+            contentDescription = stringResource(R.string.image_item_photo),
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
@@ -289,7 +295,7 @@ private fun ImagePreview(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Tap to change photo",
+                text = stringResource(R.string.image_tap_change),
                 color = Color.White,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -303,19 +309,12 @@ private fun RequiredTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    placeholderText: String,
     isError: Boolean,
     errorText: String,
     modifier: Modifier = Modifier,
     minLines: Int = 1
 ) {
-    val placeholderText = when (label) {
-        "Item Name" -> "e.g. Desk Lamp"
-        "Description" -> "Describe the condition, any defects, and other useful details."
-        "Location" -> "e.g. Near campus"
-        "Contact Information" -> "e.g. WhatsApp 0821 1222 3334"
-        else -> label
-    }
-
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp)

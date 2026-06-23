@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.dresta0056.free.R
@@ -54,13 +55,13 @@ fun LoginScreen(
         )
         Spacer(modifier = Modifier.height(18.dp))
         Text(
-            text = "FREE",
+            text = stringResource(R.string.brand_name_caps),
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Let go of what you hoard. Give unused things a second life.",
+            text = stringResource(R.string.login_tagline),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -87,7 +88,7 @@ fun LoginScreen(
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    Text("Signing in")
+                    Text(stringResource(R.string.signing_in))
                 }
             } else {
                 Row(
@@ -106,7 +107,7 @@ fun LoginScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                    Text("Sign in with Google")
+                    Text(stringResource(R.string.sign_in_with_google))
                 }
             }
         }
