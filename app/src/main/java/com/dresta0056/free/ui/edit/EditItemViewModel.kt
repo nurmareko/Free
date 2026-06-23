@@ -2,6 +2,7 @@ package com.dresta0056.free.ui.edit
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -113,7 +114,8 @@ class EditItemViewModel(
                         withContext(Dispatchers.IO) {
                             compressToImagePart(appContext, newImageUri)
                         }
-                    } catch (_: Exception) {
+                    } catch (exception: Exception) {
+                        Log.e("EditItemViewModel", "Unable to process selected image", exception)
                         _uiState.update { it.copy(error = "Couldn't process the image") }
                         return@launch
                     }

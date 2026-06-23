@@ -2,6 +2,7 @@ package com.dresta0056.free.ui.add
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -92,7 +93,8 @@ class AddItemViewModel(
                     withContext(Dispatchers.IO) {
                         compressToImagePart(getApplication(), imageUri)
                     }
-                } catch (_: Exception) {
+                } catch (exception: Exception) {
+                    Log.e("AddItemViewModel", "Unable to process selected image", exception)
                     _uiState.update { it.copy(error = "Couldn't process the image") }
                     return@launch
                 }

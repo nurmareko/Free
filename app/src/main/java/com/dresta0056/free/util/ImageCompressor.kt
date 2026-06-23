@@ -8,6 +8,8 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
+import android.util.Log
+import android.webkit.MimeTypeMap
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -23,6 +25,26 @@ suspend fun compressToImagePart(
     maxDim: Int = 1080,
     quality: Int = 80
 ): MultipartBody.Part = withContext(Dispatchers.IO) {
+    try {
+        compressToJpegImagePart(context, uri, maxDim, quality)
+    } catch (exception: Exception) {
+        Log.w(
+            ImageCompressorTag,
+            "Unable to decode and compress image; uploading original file instead",
+            exception
+        )
+        copyOriginalToImagePart(context, uri)
+    }
+}
+
+private const val ImageCompressorTag = "ImageCompressor"
+
+private fun compressToJpegImagePart(
+    context: Context,
+    uri: Uri,
+    maxDim: Int,
+    quality: Int
+): MultipartBody.Part {
     val resolver = context.contentResolver
     val decodedImage = decodeImage(context, uri, maxDim)
     val decoded = decodedImage.bitmap
@@ -61,7 +83,30 @@ suspend fun compressToImagePart(
     scaled.recycle()
 
     val body = file.asRequestBody("image/jpeg".toMediaType())
-    MultipartBody.Part.createFormData("image", file.name, body)
+    return MultipartBody.Part.createFormData("image", file.name, body)
+}
+
+private fun copyOriginalToImagePart(
+    context: Context,
+    uri: Uri
+): MultipartBody.Part {
+    val resolver = context.contentResolver
+    val mediaType = resolver.getType(uri)
+        ?.takeIf { it.startsWith("image/") }
+        ?: "image/jpeg"
+    val extension = MimeTypeMap.getSingleton()
+        .getExtensionFromMimeType(mediaType)
+        ?: "jpg"
+    val file = File(context.cacheDir, "upload_original_${System.currentTimeMillis()}.$extension")
+
+    FileOutputStream(file).use { output ->
+        resolver.openInputStream(uri)?.use { input ->
+            input.copyTo(output)
+        } ?: throw IOException("Unable to open image")
+    }
+
+    val body = file.asRequestBody(mediaType.toMediaType())
+    return MultipartBody.Part.createFormData("image", file.name, body)
 }
 
 private data class DecodedImage(
@@ -74,15 +119,18 @@ private fun decodeImage(
     uri: Uri,
     maxDim: Int
 ): DecodedImage {
-    decodeWithBitmapFactory(context, uri, maxDim)?.let { bitmap ->
+    runCatching {
+        decodeWithBitmapFactory(context, uri, maxDim)
+    }.getOrNull()?.let { bitmap ->
         return DecodedImage(bitmap = bitmap, needsExifRotation = true)
     }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        return DecodedImage(
-            bitmap = decodeWithImageDecoder(context, uri, maxDim),
-            needsExifRotation = false
-        )
+        runCatching {
+            decodeWithImageDecoder(context, uri, maxDim)
+        }.getOrNull()?.let { bitmap ->
+            return DecodedImage(bitmap = bitmap, needsExifRotation = false)
+        }
     }
 
     throw IOException("Unable to decode image")
