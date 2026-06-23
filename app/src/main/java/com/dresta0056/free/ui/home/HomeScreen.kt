@@ -5,19 +5,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -136,13 +131,6 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                        FeedHeader(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 2.dp)
-                        )
-                    }
                     items(
                         items = state.items,
                         key = { it.id }
@@ -155,34 +143,6 @@ fun HomeScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun FeedHeader(
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        AssistChip(
-            onClick = {},
-            label = { Text("All Items") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Inventory2,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-            },
-            colors = AssistChipDefaults.assistChipColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            border = null
-        )
     }
 }
 

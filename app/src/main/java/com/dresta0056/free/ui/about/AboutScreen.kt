@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Yard
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,18 +36,26 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.dresta0056.free.domain.UserProfile
 import com.dresta0056.free.ui.theme.FreeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(modifier: Modifier = Modifier) {
+fun AboutScreen(
+    profile: UserProfile,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("About Free") },
+                title = { Text("About") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
@@ -62,6 +73,10 @@ fun AboutScreen(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            ProfileCard(
+                profile = profile,
+                onLogout = onLogout
+            )
             Box(
                 modifier = Modifier
                     .size(112.dp)
@@ -132,6 +147,82 @@ fun AboutScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun ProfileCard(
+    profile: UserProfile,
+    onLogout: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (profile.pictureUrl.isBlank()) {
+                Box(
+                    modifier = Modifier
+                        .size(58.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = profile.name.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = profile.pictureUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(58.dp)
+                        .clip(CircleShape)
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = profile.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = profile.email,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Button(
+            onClick = onLogout,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .height(48.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        ) {
+            Text("Log out")
+        }
+    }
+}
+
+@Composable
 private fun ConductSection(
     title: String,
     items: List<String>,
@@ -184,6 +275,14 @@ private fun ConductSection(
 @Composable
 fun AboutScreenPreview() {
     FreeTheme {
-        AboutScreen()
+        AboutScreen(
+            profile = UserProfile(
+                id = "google-sub",
+                email = "person@example.com",
+                name = "Avery Free",
+                pictureUrl = ""
+            ),
+            onLogout = {}
+        )
     }
 }

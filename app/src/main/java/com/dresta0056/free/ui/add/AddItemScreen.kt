@@ -47,14 +47,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 
@@ -72,6 +78,11 @@ fun AddItemScreen(
 ) {
     val state by vm.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+    val titleFocusRequester = remember { FocusRequester() }
+    val descriptionFocusRequester = remember { FocusRequester() }
+    val locationFocusRequester = remember { FocusRequester() }
+    val contactFocusRequester = remember { FocusRequester() }
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -91,6 +102,31 @@ fun AddItemScreen(
             onDone()
             vm.consumeDone()
         }
+    }
+
+    fun requestFirstIncompleteField() {
+        when {
+            state.title.isBlank() -> titleFocusRequester.requestFocus()
+            state.description.isBlank() -> descriptionFocusRequester.requestFocus()
+            state.location.isBlank() -> locationFocusRequester.requestFocus()
+            state.contactInfo.isBlank() -> contactFocusRequester.requestFocus()
+            else -> focusManager.clearFocus()
+        }
+    }
+
+    fun submitFromKeyboard() {
+        if (
+            state.title.isBlank() ||
+            state.description.isBlank() ||
+            state.location.isBlank() ||
+            state.contactInfo.isBlank()
+        ) {
+            vm.submit()
+            requestFirstIncompleteField()
+            return
+        }
+        focusManager.clearFocus()
+        vm.submit()
     }
 
     Scaffold(
@@ -140,7 +176,10 @@ fun AddItemScreen(
                 onValueChange = vm::onTitleChange,
                 label = "Item Name",
                 isError = state.titleError,
-                errorText = "Item Name is required"
+                errorText = "Item Name is required",
+                imeAction = ImeAction.Next,
+                onKeyboardAction = { descriptionFocusRequester.requestFocus() },
+                modifier = Modifier.focusRequester(titleFocusRequester)
             )
             RequiredTextField(
                 value = state.description,
@@ -148,21 +187,30 @@ fun AddItemScreen(
                 label = "Description",
                 isError = state.descriptionError,
                 errorText = "Description is required",
-                minLines = 4
+                minLines = 4,
+                imeAction = ImeAction.Next,
+                onKeyboardAction = { locationFocusRequester.requestFocus() },
+                modifier = Modifier.focusRequester(descriptionFocusRequester)
             )
             RequiredTextField(
                 value = state.location,
                 onValueChange = vm::onLocationChange,
                 label = "Location",
                 isError = state.locationError,
-                errorText = "Location is required"
+                errorText = "Location is required",
+                imeAction = ImeAction.Next,
+                onKeyboardAction = { contactFocusRequester.requestFocus() },
+                modifier = Modifier.focusRequester(locationFocusRequester)
             )
             RequiredTextField(
                 value = state.contactInfo,
                 onValueChange = vm::onContactChange,
                 label = "Contact Information",
                 isError = state.contactError,
-                errorText = "Contact Information is required"
+                errorText = "Contact Information is required",
+                imeAction = ImeAction.Done,
+                onKeyboardAction = ::submitFromKeyboard,
+                modifier = Modifier.focusRequester(contactFocusRequester)
             )
 
             Button(
@@ -307,7 +355,9 @@ private fun RequiredTextField(
     isError: Boolean,
     errorText: String,
     modifier: Modifier = Modifier,
-    minLines: Int = 1
+    minLines: Int = 1,
+    imeAction: ImeAction = ImeAction.Next,
+    onKeyboardAction: () -> Unit = {}
 ) {
     val placeholderText = when (label) {
         "Item Name" -> "e.g. Desk Lamp"
@@ -337,6 +387,11 @@ private fun RequiredTextField(
                 null
             },
             minLines = minLines,
+            keyboardOptions = KeyboardOptions(imeAction = imeAction),
+            keyboardActions = KeyboardActions(
+                onNext = { onKeyboardAction() },
+                onDone = { onKeyboardAction() }
+            ),
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,

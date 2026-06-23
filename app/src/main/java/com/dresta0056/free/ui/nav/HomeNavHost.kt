@@ -31,7 +31,6 @@ import com.dresta0056.free.ui.detail.ItemDetailScreen
 import com.dresta0056.free.ui.edit.EditItemScreen
 import com.dresta0056.free.ui.home.HomeScreen
 import com.dresta0056.free.ui.home.HomeViewModel
-import com.dresta0056.free.ui.profile.ProfileScreen
 
 private const val ItemRoute = "item/{id}"
 private const val AddRoute = "add"
@@ -48,8 +47,7 @@ fun HomeNavHost(
     val bottomDestinations = listOf(
         Dest.Home,
         Dest.MyPosts,
-        Dest.About,
-        Dest.Profile
+        Dest.About
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -130,10 +128,7 @@ fun HomeNavHost(
                 )
             }
             composable(Dest.About.route) {
-                com.dresta0056.free.ui.about.AboutScreen()
-            }
-            composable(Dest.Profile.route) {
-                ProfileScreen(
+                com.dresta0056.free.ui.about.AboutScreen(
                     profile = rootProfile,
                     onLogout = onLogout
                 )

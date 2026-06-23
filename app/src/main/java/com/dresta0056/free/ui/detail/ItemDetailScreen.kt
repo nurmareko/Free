@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,7 +48,6 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -175,8 +172,6 @@ private fun DetailContent(
     modifier: Modifier = Modifier
 ) {
     val clipboardManager = LocalClipboardManager.current
-    val uriHandler = LocalUriHandler.current
-    val contactDigits = item.contactInfo.filter { it.isDigit() }
 
     Column(
         modifier = modifier
@@ -225,34 +220,11 @@ private fun DetailContent(
                 label = "Contact",
                 value = item.contactInfo
             )
-            Button(
-                onClick = {
-                    if (contactDigits.isNotBlank()) {
-                        uriHandler.openUri("https://wa.me/$contactDigits")
-                    } else {
-                        clipboardManager.setText(AnnotatedString(item.contactInfo))
-                    }
-                },
+            OutlinedButton(
+                onClick = { clipboardManager.setText(AnnotatedString(item.contactInfo)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 4.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Chat,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text("Chat on WhatsApp")
-            }
-            OutlinedButton(
-                onClick = { clipboardManager.setText(AnnotatedString(item.contactInfo)) },
-                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.primary
