@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.dresta0056.free.domain.UserProfile
+import com.dresta0056.free.ui.add.AddItemScreen
 import com.dresta0056.free.ui.home.HomeScreen
 import com.dresta0056.free.ui.home.HomeViewModel
 import com.dresta0056.free.ui.profile.ProfileScreen
@@ -121,7 +122,10 @@ fun HomeNavHost(
                 PlaceholderText("Item $itemId")
             }
             composable(AddRoute) {
-                PlaceholderText("Add — coming soon")
+                AddItemScreen(
+                    onDone = { navController.popBackStack() },
+                    onClose = { navController.popBackStack() }
+                )
             }
         }
     }
