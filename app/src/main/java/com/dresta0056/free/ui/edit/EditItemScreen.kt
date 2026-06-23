@@ -1,5 +1,6 @@
 package com.dresta0056.free.ui.edit
 
+import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -54,10 +55,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.dresta0056.free.R
+import com.dresta0056.free.ui.preview.PreviewData
+import com.dresta0056.free.ui.theme.FreeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +78,6 @@ fun EditItemScreen(
     )
 ) {
     val state by vm.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -83,16 +86,54 @@ fun EditItemScreen(
         }
     }
 
+    EditItemScaffold(
+        state = state,
+        onDone = onDone,
+        onClose = onClose,
+        onImageClick = {
+            picker.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        },
+        onTitleChange = vm::onTitleChange,
+        onDescriptionChange = vm::onDescriptionChange,
+        onLocationChange = vm::onLocationChange,
+        onContactChange = vm::onContactChange,
+        onSubmit = vm::submit,
+        onErrorShown = vm::consumeError,
+        onDoneShown = vm::consumeDone,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditItemScaffold(
+    state: EditItemUiState,
+    onDone: () -> Unit,
+    onClose: () -> Unit,
+    onImageClick: () -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onContactChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onErrorShown: () -> Unit,
+    onDoneShown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(state.error) {
         val message = state.error ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        vm.consumeError()
+        onErrorShown()
     }
 
     LaunchedEffect(state.done) {
         if (state.done) {
             onDone()
-            vm.consumeDone()
+            onDoneShown()
         }
     }
 
@@ -141,16 +182,12 @@ fun EditItemScreen(
             ) {
                 ImagePickerBox(
                     state = state,
-                    onClick = {
-                        picker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    }
+                    onClick = onImageClick
                 )
 
                 RequiredTextField(
                     value = state.title,
-                    onValueChange = vm::onTitleChange,
+                    onValueChange = onTitleChange,
                     label = stringResource(R.string.field_item_name),
                     placeholderText = stringResource(R.string.placeholder_item_name),
                     isError = state.titleError,
@@ -158,7 +195,7 @@ fun EditItemScreen(
                 )
                 RequiredTextField(
                     value = state.description,
-                    onValueChange = vm::onDescriptionChange,
+                    onValueChange = onDescriptionChange,
                     label = stringResource(R.string.field_description),
                     placeholderText = stringResource(R.string.placeholder_description),
                     isError = state.descriptionError,
@@ -167,7 +204,7 @@ fun EditItemScreen(
                 )
                 RequiredTextField(
                     value = state.location,
-                    onValueChange = vm::onLocationChange,
+                    onValueChange = onLocationChange,
                     label = stringResource(R.string.field_location),
                     placeholderText = stringResource(R.string.placeholder_location),
                     isError = state.locationError,
@@ -175,7 +212,7 @@ fun EditItemScreen(
                 )
                 RequiredTextField(
                     value = state.contactInfo,
-                    onValueChange = vm::onContactChange,
+                    onValueChange = onContactChange,
                     label = stringResource(R.string.field_contact_information),
                     placeholderText = stringResource(R.string.placeholder_contact_information),
                     isError = state.contactError,
@@ -183,7 +220,7 @@ fun EditItemScreen(
                 )
 
                 Button(
-                    onClick = vm::submit,
+                    onClick = onSubmit,
                     enabled = !state.isSubmitting,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -344,6 +381,36 @@ private fun RequiredTextField(
                 cursorColor = MaterialTheme.colorScheme.primary
             ),
             modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun EditItemScreenPreview() {
+    val item = PreviewData.item
+
+    FreeTheme {
+        EditItemScaffold(
+            state = EditItemUiState(
+                title = item.title,
+                description = item.description,
+                location = item.location,
+                contactInfo = item.contactInfo,
+                existingImageUrl = item.imageUrl,
+                loaded = true
+            ),
+            onDone = {},
+            onClose = {},
+            onImageClick = {},
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onLocationChange = {},
+            onContactChange = {},
+            onSubmit = {},
+            onErrorShown = {},
+            onDoneShown = {}
         )
     }
 }

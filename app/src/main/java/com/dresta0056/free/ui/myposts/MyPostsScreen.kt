@@ -1,5 +1,6 @@
 package com.dresta0056.free.ui.myposts
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,11 +37,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dresta0056.free.R
 import com.dresta0056.free.ui.home.ItemCard
+import com.dresta0056.free.ui.preview.PreviewData
+import com.dresta0056.free.ui.theme.FreeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,12 +57,31 @@ fun MyPostsScreen(
         factory = MyPostsViewModel.Factory(context.applicationContext)
     )
     val state by vm.uiState.collectAsState()
+
+    MyPostsScaffold(
+        state = state,
+        onItemClick = onItemClick,
+        onRefresh = vm::refresh,
+        onErrorShown = vm::consumeError,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MyPostsScaffold(
+    state: MyPostsUiState,
+    onItemClick: (String) -> Unit,
+    onRefresh: () -> Unit,
+    onErrorShown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.error) {
         val message = state.error ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        vm.consumeError()
+        onErrorShown()
     }
 
     Scaffold(
@@ -67,7 +90,7 @@ fun MyPostsScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.nav_my_posts)) },
                 actions = {
-                    IconButton(onClick = vm::refresh) {
+                    IconButton(onClick = onRefresh) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
                             contentDescription = stringResource(R.string.action_refresh)
@@ -163,6 +186,20 @@ private fun EmptyMyPostsState(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun MyPostsScreenPreview() {
+    FreeTheme {
+        MyPostsScaffold(
+            state = MyPostsUiState(items = PreviewData.items.take(2)),
+            onItemClick = {},
+            onRefresh = {},
+            onErrorShown = {}
         )
     }
 }

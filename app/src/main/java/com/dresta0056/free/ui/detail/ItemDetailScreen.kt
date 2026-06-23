@@ -1,5 +1,6 @@
 package com.dresta0056.free.ui.detail
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,11 +52,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.dresta0056.free.R
 import com.dresta0056.free.model.Item
+import com.dresta0056.free.ui.preview.PreviewData
+import com.dresta0056.free.ui.theme.FreeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,12 +77,41 @@ fun ItemDetailScreen(
     )
 ) {
     val state by vm.uiState.collectAsState()
+
+    ItemDetailScaffold(
+        itemId = itemId,
+        state = state,
+        onBack = onBack,
+        onDeleted = onDeleted,
+        onEdit = onEdit,
+        onAskDelete = vm::askDelete,
+        onConfirmDelete = vm::confirmDelete,
+        onDismissDelete = vm::dismissDelete,
+        onErrorShown = vm::consumeError,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ItemDetailScaffold(
+    itemId: String,
+    state: DetailUiState,
+    onBack: () -> Unit,
+    onDeleted: () -> Unit,
+    onEdit: (String) -> Unit,
+    onAskDelete: () -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDelete: () -> Unit,
+    onErrorShown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.error) {
         val message = state.error ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        vm.consumeError()
+        onErrorShown()
     }
 
     LaunchedEffect(state.deleted) {
@@ -112,7 +145,7 @@ fun ItemDetailScreen(
                             )
                         }
                         IconButton(
-                            onClick = vm::askDelete,
+                            onClick = onAskDelete,
                             enabled = !state.isDeleting
                         ) {
                             Icon(
@@ -162,8 +195,8 @@ fun ItemDetailScreen(
     if (state.showConfirm) {
         DeleteConfirmDialog(
             isDeleting = state.isDeleting,
-            onConfirm = vm::confirmDelete,
-            onDismiss = vm::dismissDelete
+            onConfirm = onConfirmDelete,
+            onDismiss = onDismissDelete
         )
     }
 }
@@ -325,3 +358,25 @@ private fun DeleteConfirmDialog(
 private fun neutralImagePainter() = ColorPainter(
     MaterialTheme.colorScheme.surfaceVariant
 )
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ItemDetailScreenPreview() {
+    FreeTheme {
+        ItemDetailScaffold(
+            itemId = PreviewData.item.id,
+            state = DetailUiState(
+                item = PreviewData.item,
+                canDelete = true
+            ),
+            onBack = {},
+            onDeleted = {},
+            onEdit = {},
+            onAskDelete = {},
+            onConfirmDelete = {},
+            onDismissDelete = {},
+            onErrorShown = {}
+        )
+    }
+}

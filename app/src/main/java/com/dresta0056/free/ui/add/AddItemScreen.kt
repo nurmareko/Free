@@ -1,6 +1,7 @@
 package com.dresta0056.free.ui.add
 
 import android.app.Application
+import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,12 +60,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.dresta0056.free.R
+import com.dresta0056.free.ui.theme.FreeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,12 +82,6 @@ fun AddItemScreen(
     )
 ) {
     val state by vm.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val focusManager = LocalFocusManager.current
-    val titleFocusRequester = remember { FocusRequester() }
-    val descriptionFocusRequester = remember { FocusRequester() }
-    val locationFocusRequester = remember { FocusRequester() }
-    val contactFocusRequester = remember { FocusRequester() }
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -93,16 +90,59 @@ fun AddItemScreen(
         }
     }
 
+    AddItemScaffold(
+        state = state,
+        onDone = onDone,
+        onClose = onClose,
+        onImageClick = {
+            picker.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        },
+        onTitleChange = vm::onTitleChange,
+        onDescriptionChange = vm::onDescriptionChange,
+        onLocationChange = vm::onLocationChange,
+        onContactChange = vm::onContactChange,
+        onSubmit = vm::submit,
+        onErrorShown = vm::consumeError,
+        onDoneShown = vm::consumeDone,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddItemScaffold(
+    state: AddItemUiState,
+    onDone: () -> Unit,
+    onClose: () -> Unit,
+    onImageClick: () -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onContactChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onErrorShown: () -> Unit,
+    onDoneShown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+    val titleFocusRequester = remember { FocusRequester() }
+    val descriptionFocusRequester = remember { FocusRequester() }
+    val locationFocusRequester = remember { FocusRequester() }
+    val contactFocusRequester = remember { FocusRequester() }
+
     LaunchedEffect(state.error) {
         val message = state.error ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        vm.consumeError()
+        onErrorShown()
     }
 
     LaunchedEffect(state.done) {
         if (state.done) {
             onDone()
-            vm.consumeDone()
+            onDoneShown()
         }
     }
 
@@ -123,12 +163,12 @@ fun AddItemScreen(
             state.location.isBlank() ||
             state.contactInfo.isBlank()
         ) {
-            vm.submit()
+            onSubmit()
             requestFirstIncompleteField()
             return
         }
         focusManager.clearFocus()
-        vm.submit()
+        onSubmit()
     }
 
     Scaffold(
@@ -166,16 +206,12 @@ fun AddItemScreen(
         ) {
             ImagePickerBox(
                 state = state,
-                onClick = {
-                    picker.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                }
+                onClick = onImageClick
             )
 
             RequiredTextField(
                 value = state.title,
-                onValueChange = vm::onTitleChange,
+                onValueChange = onTitleChange,
                 label = stringResource(R.string.field_item_name),
                 placeholderText = stringResource(R.string.placeholder_item_name),
                 isError = state.titleError,
@@ -186,7 +222,7 @@ fun AddItemScreen(
             )
             RequiredTextField(
                 value = state.description,
-                onValueChange = vm::onDescriptionChange,
+                onValueChange = onDescriptionChange,
                 label = stringResource(R.string.field_description),
                 placeholderText = stringResource(R.string.placeholder_description),
                 isError = state.descriptionError,
@@ -198,7 +234,7 @@ fun AddItemScreen(
             )
             RequiredTextField(
                 value = state.location,
-                onValueChange = vm::onLocationChange,
+                onValueChange = onLocationChange,
                 label = stringResource(R.string.field_location),
                 placeholderText = stringResource(R.string.placeholder_location),
                 isError = state.locationError,
@@ -209,7 +245,7 @@ fun AddItemScreen(
             )
             RequiredTextField(
                 value = state.contactInfo,
-                onValueChange = vm::onContactChange,
+                onValueChange = onContactChange,
                 label = stringResource(R.string.field_contact_information),
                 placeholderText = stringResource(R.string.placeholder_contact_information),
                 isError = state.contactError,
@@ -220,7 +256,7 @@ fun AddItemScreen(
             )
 
             Button(
-                onClick = vm::submit,
+                onClick = onSubmit,
                 enabled = !state.isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -400,6 +436,32 @@ private fun RequiredTextField(
                 cursorColor = MaterialTheme.colorScheme.primary
             ),
             modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun AddItemScreenPreview() {
+    FreeTheme {
+        AddItemScaffold(
+            state = AddItemUiState(
+                title = "Desk Lamp",
+                description = "Adjustable lamp with a warm bulb and USB power.",
+                location = "East hall",
+                contactInfo = "noor@example.com"
+            ),
+            onDone = {},
+            onClose = {},
+            onImageClick = {},
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onLocationChange = {},
+            onContactChange = {},
+            onSubmit = {},
+            onErrorShown = {},
+            onDoneShown = {}
         )
     }
 }
