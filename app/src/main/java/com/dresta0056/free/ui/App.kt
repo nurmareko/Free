@@ -15,7 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dresta0056.free.ui.auth.AuthUiState
 import com.dresta0056.free.ui.auth.AuthViewModel
 import com.dresta0056.free.ui.login.LoginScreen
-import com.dresta0056.free.ui.profile.ProfileScreen
+import com.dresta0056.free.ui.nav.HomeNavHost
 
 @Composable
 fun App() {
@@ -54,8 +54,8 @@ fun App() {
             }
 
             is AuthUiState.SignedIn -> {
-                ProfileScreen(
-                    profile = authState.profile,
+                HomeNavHost(
+                    rootProfile = authState.profile,
                     onLogout = { vm.signOut(ctx) }
                 )
             }
