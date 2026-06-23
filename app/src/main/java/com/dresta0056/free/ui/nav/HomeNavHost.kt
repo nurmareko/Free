@@ -118,7 +118,7 @@ fun HomeNavHost(
                 )
             }
             composable(Dest.About.route) {
-                PlaceholderText("About — coming soon")
+                com.dresta0056.free.ui.about.AboutScreen()
             }
             composable(Dest.Profile.route) {
                 ProfileScreen(
