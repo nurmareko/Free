@@ -20,8 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Yard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -76,36 +74,6 @@ fun AboutScreen(
             ProfileCard(
                 profile = profile,
                 onLogout = onLogout
-            )
-            Box(
-                modifier = Modifier
-                    .size(112.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
-                        shape = RoundedCornerShape(56.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Inventory2,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(54.dp)
-                )
-                Icon(
-                    imageVector = Icons.Filled.Yard,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(18.dp)
-                        .size(30.dp)
-                )
-            }
-            Text(
-                text = "FREE",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "Free is a frugal giveaway app for people who have unused things but do not want to throw them away.",
