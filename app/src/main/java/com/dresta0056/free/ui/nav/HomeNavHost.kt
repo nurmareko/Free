@@ -27,13 +27,15 @@ import androidx.navigation.navArgument
 import com.dresta0056.free.domain.UserProfile
 import com.dresta0056.free.ui.add.AddItemScreen
 import com.dresta0056.free.ui.detail.ItemDetailScreen
+import com.dresta0056.free.ui.edit.EditItemScreen
 import com.dresta0056.free.ui.home.HomeScreen
 import com.dresta0056.free.ui.home.HomeViewModel
 import com.dresta0056.free.ui.profile.ProfileScreen
 
 private const val ItemRoute = "item/{id}"
 private const val AddRoute = "add"
-private val HomeChildRoutes = setOf(ItemRoute, AddRoute)
+private const val EditRoute = "edit/{id}"
+private val HomeChildRoutes = setOf(ItemRoute, AddRoute, EditRoute)
 
 @Composable
 fun HomeNavHost(
@@ -132,11 +134,27 @@ fun HomeNavHost(
                 ItemDetailScreen(
                     itemId = itemId,
                     onBack = { navController.popBackStack() },
-                    onDeleted = { navController.popBackStack() }
+                    onDeleted = { navController.popBackStack() },
+                    onEdit = { id -> navController.navigate("edit/${Uri.encode(id)}") }
                 )
             }
             composable(AddRoute) {
                 AddItemScreen(
+                    onDone = { navController.popBackStack() },
+                    onClose = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = EditRoute,
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { entry ->
+                val itemId = entry.arguments?.getString("id").orEmpty()
+                EditItemScreen(
+                    itemId = itemId,
                     onDone = { navController.popBackStack() },
                     onClose = { navController.popBackStack() }
                 )
