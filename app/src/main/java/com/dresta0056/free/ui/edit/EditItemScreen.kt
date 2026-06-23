@@ -23,17 +23,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -103,12 +106,18 @@ fun EditItemScreen(
                             contentDescription = "Close"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (!state.loaded) {
             Box(
@@ -172,13 +181,18 @@ fun EditItemScreen(
                     enabled = !state.isSubmitting,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp)
+                        .height(52.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 ) {
                     if (state.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else {
                         Text("Save changes")
@@ -195,7 +209,7 @@ private fun ImagePickerBox(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(8.dp)
+    val shape = RoundedCornerShape(16.dp)
     val imageModel = state.newImageUri ?: state.existingImageUrl
     val borderColor = MaterialTheme.colorScheme.outline
 
@@ -203,16 +217,16 @@ private fun ImagePickerBox(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(16f / 10f)
+                .aspectRatio(16f / 9f)
                 .clip(shape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
                 .drawBehind {
                     drawRoundRect(
                         color = borderColor,
-                        cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx()),
+                        cornerRadius = CornerRadius(16.dp.toPx(), 16.dp.toPx()),
                         style = Stroke(
                             width = 1.5.dp.toPx(),
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 12f))
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))
                         )
                     )
                 }
@@ -230,10 +244,16 @@ private fun ImagePickerBox(
                         imageVector = Icons.Filled.PhotoCamera,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier
+                            .size(54.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(27.dp)
+                            )
+                            .padding(14.dp)
                     )
                     Text(
-                        text = "Add photo",
+                        text = "Add photos",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -288,17 +308,43 @@ private fun RequiredTextField(
     modifier: Modifier = Modifier,
     minLines: Int = 1
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        isError = isError,
-        supportingText = if (isError) {
-            { Text(errorText) }
-        } else {
-            null
-        },
-        minLines = minLines,
-        modifier = modifier.fillMaxWidth()
-    )
+    val placeholderText = when (label) {
+        "Item Name" -> "e.g. Desk Lamp"
+        "Description" -> "Describe the condition, any defects, and other useful details."
+        "Location" -> "e.g. Near campus"
+        "Contact Information" -> "e.g. WhatsApp 0821 1222 3334"
+        else -> label
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text(placeholderText) },
+            isError = isError,
+            supportingText = if (isError) {
+                { Text(errorText) }
+            } else {
+                null
+            },
+            minLines = minLines,
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }

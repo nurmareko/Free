@@ -1,51 +1,63 @@
 package com.dresta0056.free.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Sage,
+    onPrimary = DeepCharcoal,
+    primaryContainer = OliveGreen,
+    onPrimaryContainer = SoftCream,
+    secondary = WarmBeige,
+    onSecondary = DeepCharcoal,
+    tertiary = MutedBrown,
+    background = DeepCharcoal,
+    onBackground = SoftCream,
+    surface = Color(0xFF23211D),
+    onSurface = SoftCream,
+    surfaceVariant = Color(0xFF3D3A32),
+    onSurfaceVariant = WarmBeige,
+    outline = Sage,
+    error = Color(0xFFE6A08A)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = DeepOlive,
+    onPrimary = CreamSurface,
+    primaryContainer = OliveGreen,
+    onPrimaryContainer = CreamSurface,
+    secondary = Sage,
+    onSecondary = DeepCharcoal,
+    secondaryContainer = WarmBeige,
+    onSecondaryContainer = DeepCharcoal,
+    tertiary = MutedBrown,
+    onTertiary = CreamSurface,
+    background = SoftCream,
+    onBackground = DeepCharcoal,
+    surface = CreamSurface,
+    onSurface = DeepCharcoal,
+    surfaceVariant = WarmBeige,
+    onSurfaceVariant = Color(0xFF5F614F),
+    surfaceContainerLowest = CreamSurface,
+    surfaceContainerLow = Color(0xFFFBF6EC),
+    surfaceContainer = Color(0xFFF0E8DA),
+    surfaceContainerHigh = Color(0xFFE9DECE),
+    outline = PaperLine,
+    outlineVariant = Color(0xFFE7DCCB),
+    error = Color(0xFF9B4F2F)
 )
 
 @Composable
 fun FreeTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = false,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
+        dynamicColor -> if (darkTheme) DarkColorScheme else LightColorScheme
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
