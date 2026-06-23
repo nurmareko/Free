@@ -111,7 +111,11 @@ fun HomeNavHost(
                 )
             }
             composable(Dest.MyPosts.route) {
-                PlaceholderText("My Posts — coming soon")
+                com.dresta0056.free.ui.myposts.MyPostsScreen(
+                    onItemClick = { id ->
+                        navController.navigate("item/$id")
+                    }
+                )
             }
             composable(Dest.About.route) {
                 PlaceholderText("About — coming soon")
