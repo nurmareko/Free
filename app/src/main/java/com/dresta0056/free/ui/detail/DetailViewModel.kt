@@ -4,11 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.dresta0056.free.data.ItemRepository
+import com.dresta0056.free.data.ItemRepositoryProvider
 import com.dresta0056.free.network.toUserMessage
 import com.dresta0056.free.network.SessionStore
-import com.dresta0056.free.network.ApiService
-import com.dresta0056.free.network.Network
-import com.dresta0056.free.model.toDomain
 import com.dresta0056.free.model.UserProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +19,7 @@ import kotlinx.coroutines.launch
 class DetailViewModel(
     private val itemId: String,
     private val appContext: Context,
-    private val api: ApiService,
+    private val repository: ItemRepository,
     private val sessionStore: SessionStore
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DetailUiState())
@@ -33,9 +32,19 @@ class DetailViewModel(
                 currentProfile = profile
                 _uiState.update {
                     it.copy(
-                        canDelete = it.item != null &&
-                            profile != null &&
-                            it.item.ownerId == profile.id
+                        canDelete = canModify(it.item, profile)
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            repository.observeItem(itemId).collect { item ->
+                val profile = currentProfile
+                _uiState.update {
+                    it.copy(
+                        item = item,
+                        canDelete = canModify(item, profile),
+                        isLoading = false
                     )
                 }
             }
@@ -59,11 +68,11 @@ class DetailViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isDeleting = true, error = null) }
-            try {
-                api.deleteItem(itemId)
+            val error = repository.deleteItem(itemId)
+            if (error == null) {
                 _uiState.update { it.copy(deleted = true) }
-            } catch (exception: Exception) {
-                _uiState.update { it.copy(error = exception.toUserMessage(appContext)) }
+            } else {
+                _uiState.update { it.copy(error = error.toUserMessage(appContext)) }
             }
             _uiState.update {
                 it.copy(
@@ -80,27 +89,21 @@ class DetailViewModel(
 
     private fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            try {
-                val item = api.getItem(itemId).toDomain()
-                val profile = currentProfile
+            _uiState.update { it.copy(isLoading = it.item == null, error = null) }
+            val error = repository.refreshItem(itemId)
+            if (error != null) {
                 _uiState.update {
                     it.copy(
-                        item = item,
-                        canDelete = profile != null && item.ownerId == profile.id,
-                        isLoading = false
+                        isLoading = false,
+                        error = error.toUserMessage(appContext)
                     )
                 }
-            } catch (exception: Exception) {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = exception.toUserMessage(appContext)
-                        )
-                    }
             }
         }
     }
+
+    private fun canModify(item: com.dresta0056.free.model.Item?, profile: UserProfile?): Boolean =
+        item != null && !item.isPending && profile != null && item.ownerId == profile.id
 
     class Factory(
         private val itemId: String,
@@ -115,7 +118,7 @@ class DetailViewModel(
                 return DetailViewModel(
                     itemId = itemId,
                     appContext = applicationContext,
-                    api = Network.api,
+                    repository = ItemRepositoryProvider.get(applicationContext),
                     sessionStore = sessionStore
                 ) as T
             }

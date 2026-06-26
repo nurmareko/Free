@@ -8,11 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.dresta0056.free.R
+import com.dresta0056.free.data.CreateItemResult
+import com.dresta0056.free.data.ImageProcessingException
+import com.dresta0056.free.data.ItemRepository
+import com.dresta0056.free.data.ItemRepositoryProvider
 import com.dresta0056.free.network.toUserMessage
-import com.dresta0056.free.network.ApiService
-import com.dresta0056.free.network.Network
-import com.dresta0056.free.network.toTextPart
-import com.dresta0056.free.util.compressToImagePart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 class AddItemViewModel(
     application: Application,
-    private val api: ApiService
+    private val repository: ItemRepository
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(AddItemUiState())
     val uiState: StateFlow<AddItemUiState> = _uiState.asStateFlow()
@@ -89,33 +89,29 @@ class AddItemViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
-            try {
-                val part = try {
-                    compressToImagePart(getApplication(), imageUri)
-                } catch (exception: Exception) {
-                    Log.e("AddItemViewModel", "Unable to process selected image", exception)
-                    _uiState.update {
-                        it.copy(error = getApplication<Application>().getString(R.string.error_process_image))
-                    }
-                    return@launch
+            when (val result = repository.createItem(
+                title = title,
+                description = description,
+                location = location,
+                contactInfo = contactInfo,
+                imageUri = imageUri
+            )) {
+                is CreateItemResult.Uploaded,
+                is CreateItemResult.Queued -> {
+                    _uiState.update { it.copy(done = true) }
                 }
 
-                api.createItem(
-                    title = title.toTextPart(),
-                    description = description.toTextPart(),
-                    location = location.toTextPart(),
-                    contactInfo = contactInfo.toTextPart(),
-                    image = part
-                )
-                _uiState.update { it.copy(done = true) }
-            } catch (exception: Exception) {
-                Log.e("AddItemViewModel", "Unable to add item", exception)
-                _uiState.update {
-                    it.copy(error = exception.toUserMessage(getApplication<Application>()))
+                is CreateItemResult.Error -> {
+                    Log.e("AddItemViewModel", "Unable to add item", result.throwable)
+                    val message = if (result.throwable is ImageProcessingException) {
+                        getApplication<Application>().getString(R.string.error_process_image)
+                    } else {
+                        result.throwable.toUserMessage(getApplication<Application>())
+                    }
+                    _uiState.update { it.copy(error = message) }
                 }
-            } finally {
-                _uiState.update { it.copy(isSubmitting = false) }
             }
+            _uiState.update { it.copy(isSubmitting = false) }
         }
     }
 
@@ -133,7 +129,10 @@ class AddItemViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AddItemViewModel::class.java)) {
-                return AddItemViewModel(application, Network.api) as T
+                return AddItemViewModel(
+                    application,
+                    ItemRepositoryProvider.get(application)
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

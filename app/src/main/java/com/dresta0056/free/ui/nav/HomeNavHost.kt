@@ -125,7 +125,7 @@ fun HomeNavHost(
             composable(Dest.MyPosts.route) {
                 com.dresta0056.free.ui.myposts.MyPostsScreen(
                     onItemClick = { id ->
-                        navController.navigate("item/$id")
+                        navController.navigate("item/${Uri.encode(id)}")
                     }
                 )
             }

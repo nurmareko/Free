@@ -1,6 +1,7 @@
 package com.dresta0056.free.ui.detail
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -55,9 +55,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.dresta0056.free.R
 import com.dresta0056.free.model.Item
+import com.dresta0056.free.ui.common.LoadingImage
 import com.dresta0056.free.ui.preview.PreviewData
 import com.dresta0056.free.ui.theme.FreeTheme
 
@@ -213,16 +213,30 @@ private fun DetailContent(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp)
     ) {
-        AsyncImage(
+        LoadingImage(
             model = item.imageUrl,
             contentDescription = item.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(4f / 3f),
-            placeholder = neutralImagePainter(),
-            error = neutralImagePainter()
-        )
+                .aspectRatio(4f / 3f)
+        ) {
+            if (item.isPending) {
+                Text(
+                    text = stringResource(R.string.status_pending_upload),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -353,11 +367,6 @@ private fun DeleteConfirmDialog(
         }
     )
 }
-
-@Composable
-private fun neutralImagePainter() = ColorPainter(
-    MaterialTheme.colorScheme.surfaceVariant
-)
 
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)

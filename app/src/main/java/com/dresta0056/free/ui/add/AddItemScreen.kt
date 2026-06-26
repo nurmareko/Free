@@ -65,8 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.dresta0056.free.R
+import com.dresta0056.free.ui.common.LoadingImage
 import com.dresta0056.free.ui.theme.FreeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -365,7 +365,7 @@ private fun ImagePreview(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        AsyncImage(
+        LoadingImage(
             model = imageUri,
             contentDescription = stringResource(R.string.image_selected_photo),
             contentScale = ContentScale.Crop,

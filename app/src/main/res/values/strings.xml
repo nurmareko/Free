@@ -72,4 +72,5 @@
     <string name="error_item_not_found">Item not found</string>
     <string name="error_request_failed">Request failed (%1$d)</string>
     <string name="error_process_image">Couldn\'t process the image</string>
+    <string name="status_pending_upload">Pending upload</string>
 </resources>

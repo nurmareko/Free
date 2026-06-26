@@ -58,8 +58,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.dresta0056.free.R
+import com.dresta0056.free.ui.common.LoadingImage
 import com.dresta0056.free.ui.preview.PreviewData
 import com.dresta0056.free.ui.theme.FreeTheme
 
@@ -317,7 +317,7 @@ private fun ImagePreview(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        AsyncImage(
+        LoadingImage(
             model = imageModel,
             contentDescription = stringResource(R.string.image_item_photo),
             contentScale = ContentScale.Crop,

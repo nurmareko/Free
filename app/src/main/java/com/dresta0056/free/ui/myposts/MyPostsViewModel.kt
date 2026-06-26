@@ -4,10 +4,9 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.dresta0056.free.data.ItemRepository
+import com.dresta0056.free.data.ItemRepositoryProvider
 import com.dresta0056.free.network.toUserMessage
-import com.dresta0056.free.model.toDomain
-import com.dresta0056.free.network.ApiService
-import com.dresta0056.free.network.Network
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,12 +16,17 @@ import kotlinx.coroutines.launch
 
 class MyPostsViewModel(
     private val appContext: Context,
-    private val api: ApiService
+    private val repository: ItemRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MyPostsUiState())
     val uiState: StateFlow<MyPostsUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            repository.observeMyItems().collect { items ->
+                _uiState.update { it.copy(items = items) }
+            }
+        }
         refresh()
     }
 
@@ -31,16 +35,14 @@ class MyPostsViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            try {
-                val items = api.getItems(mine = true).map { it.toDomain() }
-                _uiState.update {
-                    it.copy(items = items, isRefreshing = false)
-                }
-            } catch (exception: Exception) {
-                _uiState.update {
+            val error = repository.refreshMyItems()
+            _uiState.update {
+                if (error == null) {
+                    it.copy(isRefreshing = false)
+                } else {
                     it.copy(
                         isRefreshing = false,
-                        error = exception.toUserMessage(appContext)
+                        error = error.toUserMessage(appContext)
                     )
                 }
             }
@@ -59,7 +61,10 @@ class MyPostsViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MyPostsViewModel::class.java)) {
-                return MyPostsViewModel(applicationContext, Network.api) as T
+                return MyPostsViewModel(
+                    applicationContext,
+                    ItemRepositoryProvider.get(applicationContext)
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

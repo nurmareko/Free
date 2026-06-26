@@ -10,5 +10,6 @@ data class Item(
     val ownerId: String,
     val ownerName: String,
     val ownerEmail: String,
-    val createdAt: String
+    val createdAt: String,
+    val isPending: Boolean = false
 )
